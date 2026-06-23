@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Order Layer Cake Visualizer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        h3 {
+            margin-top: 0;
+            color: #1e293b;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+            height: 300px;
+        }
+        .view-section {
+            flex: 1;
+            background: #f1f5f9;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 15px;
+            overflow: hidden;
+        }
+        .view-title {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-weight: bold;
+            color: #475569;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            z-index: 10;
+        }
+        
+        /* 3D Isometric Styles */
+        .iso-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            transform-style: preserve-3d;
+            transform: rotateX(60deg) rotateZ(-45deg);
+            margin-top: 40px;
+        }
+        .layer-3d {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        
+        /* Flattened 2D Styles */
+        .flat-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            background: white;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .layer-2d {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        /* SVG Element Styles */
+        .svg-ocean { fill: #add8e6; stroke: #60a5fa; stroke-width: 2; opacity: 0.9; }
+        .svg-land { fill: #86efac; stroke: #22c55e; stroke-width: 2; opacity: 0.95; }
+        .svg-cities { fill: #ef4444; stroke: #991b1b; stroke-width: 1.5; }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        label { font-weight: bold; font-size: 0.85rem; color: #475569; }
+        input[type="number"] {
+            width: 60px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;
+            text-align: center; font-family: monospace; font-size: 1rem;
+        }
+
+        .explanation {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            border-radius: 4px;
+            color: #0369a1;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            min-height: 50px;
+        }
+        .warning {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3>Z-Order Layer Cake Visualizer</h3>
+    
+    <div class="main-layout">
+        <div class="view-section">
+            <div class="view-title">3D Layer Stack</div>
+            <div class="iso-container" id="iso-stack">
+                <div class="layer-3d" id="iso-ocean">
+                    <svg viewBox="0 0 100 100"><rect class="svg-ocean" x="5" y="5" width="90" height="90" rx="4"/></svg>
+                </div>
+                <div class="layer-3d" id="iso-land">
+                    <svg viewBox="0 0 100 100"><path class="svg-land" d="M 20 20 Q 50 10 70 30 T 80 70 Q 50 90 30 80 T 20 20 Z"/></svg>
+                </div>
+                <div class="layer-3d" id="iso-cities">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="svg-cities" cx="30" cy="35" r="4"/>
+                        <circle class="svg-cities" cx="60" cy="45" r="4"/>
+                        <circle class="svg-cities" cx="45" cy="70" r="4"/>
+                        <circle class="svg-cities" cx="70" cy="65" r="4"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-section">
+            <div class="view-title">Flattened 2D Map (.plot)</div>
+            <div class="flat-container" id="flat-stack">
+                </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Ocean zorder</label>
+            <input type="number" id="z-ocean" value="1" min="1" max="5" onchange="updateZOrder()">
+        </div>
+        <div class="control-group">
+            <label>Land zorder</label>
+            <input type="number" id="z-land" value="2" min="1" max="5" onchange="updateZOrder()">
+        </div>
+        <div class="control-group">
+            <label>Cities zorder</label>
+            <input type="number" id="z-cities" value="3" min="1" max="5" onchange="updateZOrder()">
+        </div>
+    </div>
+    
+    <div class="explanation" id="explanation">
+        Adjust the zorder values to see how Matplotlib stacks elements. Higher numbers are drawn on top.
+    </div>
+</div>
+
+<script>
+    const svgs = {
+        ocean: '<svg viewBox="0 0 100 100" class="layer-2d" data-id="ocean"><rect class="svg-ocean" x="5" y="5" width="90" height="90" rx="4"/></svg>',
+        land: '<svg viewBox="0 0 100 100" class="layer-2d" data-id="land"><path class="svg-land" d="M 20 20 Q 50 10 70 30 T 80 70 Q 50 90 30 80 T 20 20 Z"/></svg>',
+        cities: '<svg viewBox="0 0 100 100" class="layer-2d" data-id="cities"><circle class="svg-cities" cx="30" cy="35" r="4"/><circle class="svg-cities" cx="60" cy="45" r="4"/><circle class="svg-cities" cx="45" cy="70" r="4"/><circle class="svg-cities" cx="70" cy="65" r="4"/></svg>'
+    };
+
+    function updateZOrder() {
+        const zOcean = parseInt(document.getElementById('z-ocean').value);
+        const zLand = parseInt(document.getElementById('z-land').value);
+        const zCities = parseInt(document.getElementById('z-cities').value);
+
+        // 1. Update 3D Isometric View (translateZ visually pushes them "up" towards the camera)
+        // We multiply by 30 to give clear physical separation in the 3D space
+        document.getElementById('iso-ocean').style.transform = `translateZ(${zOcean * 30}px)`;
+        document.getElementById('iso-land').style.transform = `translateZ(${zLand * 30}px)`;
+        document.getElementById('iso-cities').style.transform = `translateZ(${zCities * 30}px)`;
+
+        // 2. Update Flattened 2D View
+        // Sort layers by their zorder values to determine DOM insertion order
+        const layers = [
+            { id: 'ocean', z: zOcean },
+            { id: 'land', z: zLand },
+            { id: 'cities', z: zCities }
+        ];
+        
+        layers.sort((a, b) => a.z - b.z); // Ascending order (lowest draws first)
+
+        const flatStack = document.getElementById('flat-stack');
+        flatStack.innerHTML = ''; // Clear current
+        layers.forEach(layer => {
+            flatStack.innerHTML += svgs[layer.id]; // Re-insert in sorted order
+        });
+
+        // 3. Update Explanation Logic
+        const exp = document.getElementById('explanation');
+        exp.className = 'explanation'; // Reset classes
+        
+        if (zOcean > zLand && zOcean > zCities) {
+            exp.innerHTML = "<b>Uh oh!</b> The Ocean has the highest zorder. Because it is a massive background rectangle, it completely covers the land and cities underneath it!";
+            exp.classList.add('warning');
+        } else if (zLand > zCities) {
+            exp.innerHTML = "<b>Warning:</b> The Land polygon has a higher zorder than the Cities. Any city that falls inside the land boundary has been painted over and hidden.";
+            exp.classList.add('warning');
+        } else if (zOcean === zLand || zLand === zCities) {
+            exp.innerHTML = "<b>Note:</b> Two layers have the exact same zorder. Matplotlib will fall back to painting whichever one was called last in the code on top.";
+        } else {
+            exp.innerHTML = "<b>Perfect:</b> A logical layer cake. Backgrounds (Oceans) have the lowest zorder, midgrounds (Land) are in the middle, and precise foregrounds (Cities) are on top.";
+        }
+    }
+
+    // Initialize
+    updateZOrder();
+</script>
+
+</body>
+</html>
